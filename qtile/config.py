@@ -23,14 +23,38 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+colors = {
+  "bg": "#0E1419",
+  "fg": "#F8F8F2",
+  "cyan": "#8BE9FD",
+  "green": "#50FA7B",
+  "orange": "#FFB86C",
+  "pink": "#FF79C6",
+  "purple": "#BD93F9",
+  "red": "#FF5555",
+  "yellow": "#F1FA8C",
+  "white": "#FFFFFF",
+  "comment": "#6272A4",
+  "activeBorder": "#6272A4",
+  "lineHighlight": "#253340",
+  "container": "#253340",
+  "nonText": "#424450",
+  "tabDropBg": "#44475A70",
+  "bgLighter": "#424450",
+  "bgLight": "#343746",
+  "bgDark": "#21222C",
+  "bgDarker": "#191A21",
+  "purpleDarker": "#574473",
+  "selection": "#44475A",
+  "menuHover": "#3A434D"
+}
 
 from libqtile import bar, layout, widget
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
-
 mod = "mod4"
-terminal = guess_terminal()
+terminal = "kitty"
 
 keys = [
     # A list of available commands that can be bound to keys can be found
@@ -101,10 +125,14 @@ for i in groups:
             Key([mod], "space", lazy.widget["keyboardlayout"].next_keyboard()),
          ]
     )
-
+layout_theme = {"border_width": 2,
+                "margin": 5,
+                "border_focus": colors["purple"],
+                "border_normal": "1D2330"
+                }
 layouts = [
-    layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=4),
-    layout.Max(),
+    layout.Columns(**layout_theme),
+    layout.Max(**layout_theme),
     # Try more layouts by unleashing below layouts.
     # layout.Stack(num_stacks=2),
     # layout.Bsp(),
@@ -120,48 +148,71 @@ layouts = [
 
 widget_defaults = dict(
     font="sans",
-    fontsize=12,
+    fontsize=13,
     padding=3,
 )
 extension_defaults = widget_defaults.copy()
 
 screens = [
     Screen(
-        wallpaper='~/.config/qtile/background.jpg',
+        wallpaper='~/.config/qtile/nixos.png',
         wallpaper_mode='stretch',
         bottom=bar.Bar(
             [
-                widget.CurrentLayout(),
-                widget.GroupBox(),
-                widget.Prompt(),
+                widget.GroupBox(
+                    active=colors.get("purple"),
+                    inactive=colors.get("bgDark"),
+                    highlight_color=[colors.get("selection"),
+                                     colors.get("comment")],
+                    this_current_screen_border=colors.get("selection"),
+                ),
+                # widget.Prompt(),
                 widget.WindowName(),
+                widget.Systray(),
+                widget.CurrentLayoutIcon(
+                    background=colors.get("comment")
+                ),
                 widget.Chord(
                     chords_colors={
                         "launch": ("#ff0000", "#ffffff"),
                     },
                     name_transform=lambda name: name.upper(),
                 ),
-                # widget.TextBox("default config", name="default"),
-                # widget.TextBox("Press &lt;M-r&gt; to spawn", foreground="#d75f5f"),
-                # NB Systray is incompatible with Wayland, consider using StatusNotifier instead
-                # widget.StatusNotifier(),
-                widget.Systray(),
-                widget.Clock(format="%A %d %B %m %Y %I:%M:%S"),
+                widget.Clock(
+                    format="%A %d %B %m %Y %I:%M:%S",
+                    background=colors.get("selection")),
+
+                widget.Wlan(
+                    background=colors["bgDark"],
+                    foreground=colors["green"],
+                    interface='wlan0',
+                    format='  {essid} {percent:2.0%} |'
+                ),
+
                 # widget.QuickExit(),
-                widget.Volume(),
-                widget.KeyboardLayout(configured_keyboards=['us', 'ar']),
+                widget.Volume(
+                    emoji=False,
+                    fmt=" {}",
+                    background=colors.get("bgdarker"),
+                ),
+                widget.KeyboardLayout(
+                    configured_keyboards=['us', 'ar'],
+                    background=colors.get("bg")
+                ),
             ],
             24,
             # border_width=[2, 0, 2, 0],  # Draw top and bottom borders
-            # border_color=["ff00ff", "000000", "ff00ff", "000000"]  # Borders are magenta
+            background=colors.get("bg")  # Borders are magenta
         ),
     ),
 ]
 
 # Drag floating layouts.
 mouse = [
-    Drag([mod], "Button1", lazy.window.set_position_floating(), start=lazy.window.get_position()),
-    Drag([mod], "Button3", lazy.window.set_size_floating(), start=lazy.window.get_size()),
+    Drag([mod], "Button1", lazy.window.set_position_floating(),
+         start=lazy.window.get_position()),
+    Drag([mod], "Button3", lazy.window.set_size_floating(),
+         start=lazy.window.get_size()),
     Click([mod], "Button2", lazy.window.bring_to_front()),
 ]
 
